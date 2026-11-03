@@ -10,6 +10,20 @@ def carregar_petr4(arquivo="petr4_historico.csv", ação="PETR4.SA", inicio="201
     df.to_csv(arquivo)
     return df
 
+def baixar_cdi(inicio, fim):
+    # série 12 do Banco Central é referente ao CDI diário, em % ao dia. Baixamos ano a ano porque a API limita o tamanho de cada consulta
+    partes = []
+    for ano in range(inicio.year, fim.year + 1):
+        ini = max(inicio, pd.Timestamp(f"{ano}-01-01")).strftime("%d/%m/%Y")
+        fi = min(fim, pd.Timestamp(f"{ano}-12-31")).strftime("%d/%m/%Y")
+        url = ("https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados"
+               f"?formato=json&dataInicial={ini}&dataFinal={fi}")
+        partes.append(pd.DataFrame(requests.get(url, timeout=30).json()))
+    cdi = pd.concat(partes)
+    cdi["data"] = pd.to_datetime(cdi["data"], dayfirst=True)
+    cdi["valor"] = cdi["valor"].astype(float) / 100  # transformando de porcentagem para decimal
+    return cdi.set_index("data")["valor"]
+
 def carregar_cdi(inicio, fim, arquivo="cdi_historico.csv"):
     if os.path.exists(arquivo):
         return pd.read_csv(arquivo, index_col=0, parse_dates=True).squeeze()
