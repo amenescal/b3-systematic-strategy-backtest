@@ -92,7 +92,7 @@ Para que os capítulos sejam comparáveis, todos usam a mesma infraestrutura (`b
 git clone https://github.com/amenescal/b3-systematic-strategy-backtest.git
 cd b3-systematic-strategy-backtest
 
-# criar e ativar o ambiente virtual
+# criar e ativar o ambiente virtual (o projeto usa Python 3.14)
 python3.14 -m venv venv
 source venv/bin/activate  # no Windows: venv\Scripts\activate
 
@@ -102,6 +102,8 @@ pip install -r requirements.txt
 # abrir o notebook
 jupyter lab b3-systematic-strategy-backtest.ipynb
 ```
+
+O projeto foi desenvolvido e testado com Python 3.14. Versões mais antigas do Python não conseguem instalar as versões dos pacotes fixadas no `requirements.txt`.
 
 O notebook também pode ser aberto no VS Code, selecionando o kernel do `venv`.
 
