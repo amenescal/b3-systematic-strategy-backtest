@@ -78,3 +78,16 @@ def max_drawdown(equity):
 def retorno_anualizado(equity, dias_no_ano = 252):
     n_dias = len(equity)
     return equity.iloc[-1] ** (dias_no_ano / n_dias) - 1 # pegamos o ultimo valor do equity (acumulado desde o inicio) para calcular o retorno anual
+
+def resumo_metricas(retornos, cdi, dias_no_ano=252):
+    equity = (1 + retornos).cumprod()
+    return {
+        "Retorno anualizado": retorno_anualizado(equity, dias_no_ano),
+        "Sharpe": sharpe_ratio(retornos, cdi, dias_no_ano),
+        "Máx. drawdown": max_drawdown(equity)[0],
+    }
+
+def carteira_passiva(exposicao, retorno_ativo, cdi):
+    # mesma exposição média da estratégia, mas sem timing: uma fração fixa na ação
+    # e o resto no CDI, rebalanceada todo dia
+    return exposicao * retorno_ativo + (1 - exposicao) * cdi
