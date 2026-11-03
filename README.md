@@ -93,7 +93,7 @@ git clone https://github.com/amenescal/b3-systematic-strategy-backtest.git
 cd b3-systematic-strategy-backtest
 
 # criar e ativar o ambiente virtual
-python3 -m venv venv
+python3.14 -m venv venv
 source venv/bin/activate  # no Windows: venv\Scripts\activate
 
 # instalar as dependências
