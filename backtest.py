@@ -101,7 +101,7 @@ def bootstrap_dif_sharpe(excesso_a, excesso_b, n_boot=5000, bloco=20, seed=0, di
     sharpe = lambda x: x.mean() / x.std(ddof=1) * dias_no_ano ** 0.5
     difs = np.empty(n_boot)
     for i in range(n_boot):
-        inicios = rng.integers(0, n - bloco, n // bloco + 1)
+        inicios = rng.integers(0, n - bloco + 1, n // bloco + 1)
         idx = np.concatenate([np.arange(k, k + bloco) for k in inicios])[:n]
         difs[i] = sharpe(a[idx]) - sharpe(b[idx])
     return np.percentile(difs, [2.5, 97.5]), (difs > 0).mean()
