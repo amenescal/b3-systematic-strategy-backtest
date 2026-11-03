@@ -1,5 +1,6 @@
 import pandas as pd
 import yfinance as yf
+import numpy as np
 import os
 import requests
 
@@ -91,3 +92,16 @@ def carteira_passiva(exposicao, retorno_ativo, cdi):
     # mesma exposição média da estratégia, mas sem timing: uma fração fixa na ação
     # e o resto no CDI, rebalanceada todo dia
     return exposicao * retorno_ativo + (1 - exposicao) * cdi
+
+def bootstrap_dif_sharpe(excesso_a, excesso_b, n_boot=5000, bloco=20, seed=0, dias_no_ano=252):
+    # reamostra blocos de dias consecutivos (para preservar a dependência entre dias próximos),
+    # usando os mesmos dias para as duas séries (para preservar a correlação entre elas)
+    rng = np.random.default_rng(seed)
+    a, b, n = np.asarray(excesso_a), np.asarray(excesso_b), len(excesso_a)
+    sharpe = lambda x: x.mean() / x.std(ddof=1) * dias_no_ano ** 0.5
+    difs = np.empty(n_boot)
+    for i in range(n_boot):
+        inicios = rng.integers(0, n - bloco, n // bloco + 1)
+        idx = np.concatenate([np.arange(k, k + bloco) for k in inicios])[:n]
+        difs[i] = sharpe(a[idx]) - sharpe(b[idx])
+    return np.percentile(difs, [2.5, 97.5]), (difs > 0).mean()
