@@ -43,15 +43,25 @@ def carregar_cdi(inicio, fim, arquivo="cdi_historico.csv"):
     cdi.to_csv(arquivo)
     return cdi
 
-def gerar_estrategia_de_retorno(precos, cdi, janela_curta, janela_longa, custo=0.001):
+def gerar_sinal(precos, janela_curta, janela_longa):
     ma_curta = precos.rolling(janela_curta).mean()
     ma_longa = precos.rolling(janela_longa).mean()
-    sinal = (ma_curta > ma_longa).astype(int).shift(1)
-    retorno_ativo = precos.pct_change()
-    estrategia_de_retorno = sinal * retorno_ativo + (1 - sinal) * cdi # quando comprado é o retorno da acao, quando está fora do mercado é o CDI do dia
-    trocas = sinal.diff().abs()
-    estrategia_de_retorno -= trocas * custo
-    return estrategia_de_retorno
+    return (ma_curta > ma_longa).astype(int).shift(1)  # shift(1): a decisão usa o fechamento do dia anterior
+
+def retorno_da_estrategia(sinal, retorno_ativo, cdi, custo=0.001):
+    trocas = sinal.diff().abs().fillna(sinal)  # no primeiro dia, entrar comprado também paga custo
+    return sinal * retorno_ativo + (1 - sinal) * cdi - trocas * custo
+
+def walk_forward(sinais, retornos, cdi, inicio, janela_treino=600, janela_teste=200):
+    sinais_teste, escolhas = [], []
+    while inicio + janela_treino + janela_teste <= len(cdi):
+        fim_treino = inicio + janela_treino
+        # escolhe a combinação com maior Sharpe na janela de treino
+        melhor = max(retornos, key=lambda nome: sharpe_ratio(retornos[nome].iloc[inicio:fim_treino], cdi))
+        sinais_teste.append(sinais[melhor].iloc[fim_treino:fim_treino + janela_teste])
+        escolhas.append(melhor)
+        inicio += janela_teste
+    return pd.concat(sinais_teste), escolhas
 
 '''calculamos o sharpe ratio para sabermos a relacao entre o retorno-risco no periodo, usando o retorno acima do CDI (excesso), ja que o CDI é o que se ganharia sem correr risco nenhum'''
 def sharpe_ratio(retornos, livre_de_risco, dias_no_ano = 252):
