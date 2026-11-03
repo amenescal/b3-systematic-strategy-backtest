@@ -10,6 +10,18 @@ def carregar_petr4(arquivo="petr4_historico.csv", ação="PETR4.SA", inicio="201
     df.to_csv(arquivo)
     return df
 
+def remover_dias_sem_pregao(df, ação):
+    # faz com que o yf retorne algumas linhas que possuem volume zero, indicando dias sem pregão (feriados e similares)
+    sem_pregao = df[df[("Volume", ação)] == 0]
+    return df[df[("Volume", ação)] > 0], sem_pregao.index
+
+def cdi_entre_pregoes(cdi, datas_pregao):
+    # fator acumulado do CDI até o dia útil bancário anterior a cada data
+    fator = (1 + cdi).cumprod().shift(1, fill_value=1.0)
+    fator = fator.reindex(fator.index.union(datas_pregao)).ffill().reindex(datas_pregao)
+    # CDI rendido entre o pregão anterior e o atual, incluindo dias úteis bancários sem pregão
+    return fator / fator.shift(1) - 1
+
 def baixar_cdi(inicio, fim):
     # série 12 do Banco Central é referente ao CDI diário, em % ao dia. Baixamos ano a ano porque a API limita o tamanho de cada consulta
     partes = []
