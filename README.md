@@ -78,9 +78,20 @@ Correções: (1) remoção das 10 linhas de dias sem pregão; (2) acúmulo do CD
 
 A mudança de período vem da remoção das 10 linhas, que desloca as janelas do walk-forward em 10 pregões. A principal mudança de conclusão: a versão original afirmava que a estratégia rendeu cerca de 0.4 ponto percentual por ano acima do CDI. A análise de sensibilidade mostrou que esse número dependia do alinhamento específico das janelas; com os dados corrigidos, a estratégia fica abaixo do CDI no período principal e em todos os 20 alinhamentos testados no período comum.
 
+## Capítulo 2 — Mean reversion (PETR4)
+
+O segundo capítulo testa estratégias de reversão à média, em duas partes: uma versão simples na PETR4 e, depois, uma versão de pairs trading entre PETR3 e PETR4. O desenho de cada parte é registrado aqui antes de os resultados serem calculados.
+
+### Parte 1: z-score na PETR4 — desenho (registrado antes dos resultados)
+
+- **Sinal**: z-score do preço de fechamento em relação à sua média móvel, z = (preço − média de n dias) / desvio-padrão de n dias. A estratégia compra quando z < −k e vende quando z ≥ 0; entre a entrada e a saída, a posição é mantida.
+- **Grade de parâmetros**: n ∈ {10, 20, 50} pregões e k ∈ {1,0; 1,5; 2,0}, totalizando 9 combinações, o mesmo número do capítulo 1.
+- **Igual ao capítulo 1**: apenas posição comprada, caixa remunerado pelo CDI, sinal defasado em um dia, custo de 0,1% por mudança de posição, walk-forward com aquecimento de 200, treino de 600 e teste de 200 pregões (mesmo período out-of-sample, 02/04/2019 a 25/06/2026), seleção pelo maior Sharpe no treino, e as mesmas análises de robustez (carteira passiva de mesma exposição, combinações fixas, sensibilidade ao alinhamento das janelas e bootstrap).
+- **Sem stop-loss**: a posição só é encerrada quando o preço volta à média.
+- **Critério de sucesso**: a estratégia será considerada bem-sucedida se superar o CDI e tiver Sharpe maior que o da carteira passiva de mesma exposição no período out-of-sample, e se isso se mantiver na maioria dos 20 alinhamentos de janela testados.
+
 ## Próximos capítulos
 
-- **Mean reversion**: estratégia baseada na tendência de reversão à média de curto prazo, testando se desvios extremos de preço tendem a ser corrigidos.
 - **Momentum cross-sectional**: comparação de momentum relativo entre múltiplos ativos da B3, selecionando os de melhor e pior desempenho relativo em vez de operar um ativo isolado.
 
 Para que os capítulos sejam comparáveis, todos usam a mesma infraestrutura (`backtest.py`), são avaliados no mesmo período out-of-sample do capítulo 1 e passam pelas mesmas análises de robustez. A grade de parâmetros de cada estratégia será registrada neste README antes de os resultados serem calculados.
